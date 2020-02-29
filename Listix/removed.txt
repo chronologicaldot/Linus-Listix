@@ -1,0 +1,80 @@
+The old cutOut method is unsafe because it edits list size, so both cutOut and setSize have been removed.
+The alternative is to use appendRange() to save components to a new list and then the new destroyRange to remove them from the old list.
+
+
+			//! Set size
+		/* Sets the size of the list if altered by some function outside of
+		this class. This should be removed. */
+		void setSize( si32 newSize ) { this->size = newSize; }
+
+
+			//! Cut out list - UNTESTED!!
+		/* Cuts out the specified section of the list between the given
+		indexes and either returns a pointer to a new list carrying the cut
+		out values or deletes these values.
+		\param start - Index of the first node to cut out.
+		\param end - Index of the last node to cut out.
+		\param returnList - An empty list wherein the  cut part of the list
+			should be inserted. If null, the cut nodes will be deleted. */
+		void cutOut( si32 start, si32 end, Listix* returnList = REAL_NULL ) {
+			if ( size == 0 )
+				return;
+
+			// Fix out-of-bounds indices
+			if ( isOutOfBounds( &start, true ) || isOutOfBounds( &end, true ) )
+				return;
+
+			// Flip the indexes if need be
+			si32 temp;
+			if ( start > end )
+			{
+				temp = start;
+				start = end;
+				end = temp;
+			}
+
+			Node* preHead = REAL_NULL;
+			Node* postTail = REAL_NULL;
+
+			if ( start > 0 )
+				preHead = at(start - 1);
+			if ( end < size - 1 )
+				postTail = at(end + 1);
+
+			if ( returnList != REAL_NULL ) {
+				returnList->setHeadNode( at(start) );
+				returnList->setTailNode( at(end) );
+				returnList->setSize( end - start );
+
+				// Entire range
+				if ( start == 0 && end == size - 1 ) {
+					size = 0;
+					HeadNode = REAL_NULL;
+					TailNode = REAL_NULL;
+					return;
+				}
+
+				if ( preHead != REAL_NULL ) {
+					preHead->setPost(postTail);
+				}
+				if ( postTail != REAL_NULL ) {
+					postTail->setPrior(preHead);
+				}
+
+				HeadNode = preHead;
+				TailNode = postTail;
+			} else {
+				for ( si32 i = start; i < end - start; i++ ) {
+					preHead = at(i);
+					preHead->destroy();
+				}
+				// Front part is cut out
+				if ( start == 0 )
+					HeadNode = postTail;
+				// Back end is cut out
+				if ( end == size - 1 )
+					TailNode = preHead;
+			}
+			size = end - start + 1;
+			resetSelector();
+		}
