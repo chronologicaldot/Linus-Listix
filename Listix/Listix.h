@@ -312,10 +312,6 @@ namespace util
 				// Is this index fixable?
 				if ( canAlterIndex )
 				{
-					// Don't worry about corrections if there are no items
-					// - let the calling function handle this scenario
-					if ( size == 0 ) return false;
-
 #if !(defined LISTIX_SIZE_T)
 					// Correction for low values
 					while ( *index < 0 ) *index = *index + size;
